@@ -20,12 +20,10 @@ import java.util.List;
 public class ReservationRestController {
     private PersonneService personneService;
     private ReservationService reservationService;
-    private PersonneMapper personneMapper;
 
-    public ReservationRestController(PersonneService personneService, ReservationService reservationService, PersonneMapper personneMapper) {
+    public ReservationRestController(PersonneService personneService, ReservationService reservationService) {
         this.personneService = personneService;
         this.reservationService = reservationService;
-        this.personneMapper = personneMapper;
     }
 
     @GetMapping("/Reservations")
@@ -34,12 +32,12 @@ public class ReservationRestController {
     }
 
     @GetMapping("/Reservations/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public Reservation getReservation(@PathVariable Long id){
         return reservationService.getReservationById(id);
     }
 
     @GetMapping("/Personnes")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public List<PersonneResponseDto> getAllPersonnes(){
         return personneService.getPersonnes();
     }

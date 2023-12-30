@@ -24,7 +24,6 @@ public class ResourceRestController {
     }
 
     @GetMapping("/Resources/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ResourceResponseDto getResourceById(@PathVariable Long id){
         return resourceService.getbyId(id);
     }
