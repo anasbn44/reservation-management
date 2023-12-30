@@ -8,6 +8,7 @@ import ma.ab.reservationservice.model.Resource;
 import ma.ab.reservationservice.service.PersonneService;
 import ma.ab.reservationservice.service.ReservationService;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,6 +34,7 @@ public class ReservationRestController {
     }
 
     @GetMapping("/Reservations/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public Reservation getReservation(@PathVariable Long id){
         return reservationService.getReservationById(id);
     }
