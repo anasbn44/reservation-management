@@ -1,3 +1,6 @@
 [submodule "reservation-management-angular"]
 	path = reservation-management-angular
 	url = https://github.com/anasbn44/reservation-management-angular.git
+[submodule "reservation-management-config"]
+	path = reservation-management-config
+	url = https://github.com/anasbn44/reservation-management-config.git
