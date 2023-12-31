@@ -1,0 +1,146 @@
+services:
+  consul-server:
+    image: hashicorp/consul:1.11.2
+    container_name: consul-server
+    restart: always
+    volumes:
+      - ./server.json:/consul/config/server.json:ro
+      - ./certs/:/consul/config/certs/:ro
+    networks:
+      - consul
+    ports:
+      - "8500:8500"
+      - "8600:8600/tcp"
+      - "8600:8600/udp"
+    command: "agent -bootstrap-expect=3"
+  config-service:
+    build: ./config-service
+    container_name: config-service
+    ports:
+      - '7999:7999'
+    expose:
+      - '7999'
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:7999/actuator/health" ]
+      interval: 10s
+      retries: 4
+    depends_on:
+      - consul-server
+  gateway-service:
+    build: ./gateway-service
+    container_name: gateway-service
+    ports:
+      - '8000:8000'
+    expose:
+      - '8000'
+    environment:
+      - CONFIG_SERVICE_URL=http://config-service:7999
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/actuator/health" ]
+      interval: 10s
+      retries: 4
+    depends_on:
+      config-service:
+        condition: service_healthy
+  resources-service:
+    build: ./resources-service
+    container_name: resources-service
+    ports:
+      - '8081:8081'
+    expose:
+      - '8081'
+    environment:
+      - CONFIG_SERVICE_URL=http://config-service:7999
+      - JWT_ISSUER_URI=http://localhost:8080/realms/exam-realm
+      - JWT_JWK_SET_URI=http://keycloak:8080/realms/exam-realm/protocol/openid-connect/certs
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8001/actuator/health" ]
+      interval: 10s
+      retries: 4
+    depends_on:
+      config-service:
+        condition: service_healthy
+  reservation-service:
+    build: ./reservation-service
+    container_name: reservation-service
+    ports:
+      - '8081:8081'
+    expose:
+      - '8081'
+    environment:
+      - CONFIG_SERVICE_URL=http://config-service:7999
+      - JWT_ISSUER_URI=http://localhost:8080/realms/exam-realm
+      - JWT_JWK_SET_URI=http://keycloak:8080/realms/exam-realm/protocol/openid-connect/certs
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      interval: 10s
+      retries: 4
+    depends_on:
+      config-service:
+        condition: service_healthy
+  postgres-service:
+    image: postgres
+    container_name: postgres-service
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: keycloak_db
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - '5432:5432'
+    expose:
+      - '5432'
+    healthcheck:
+      test: "exit 0"
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: anas@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: 1234
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-service:5432/keycloak_db
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: 1234
+      KEYCLOAK_ADMIN: admin
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    command:
+      - start-dev
+    restart: always
+    ports:
+      - '8080:8080'
+    expose:
+      - '8080'
+    depends_on:
+      postgres-service:
+        condition: service_healthy
+  angular-front:
+    build: ./Reservation-front-app
+    container_name: angular-front
+    ports:
+      - 4200:80
+    expose:
+      - 4200
+    restart: always
+    environment:
+      - KEYCLOAK_URL=http://keycloak:8080
+    depends_on:
+      - keycloak
+networks:
+  consul:
+    driver: bridge
+volumes:
+  postgres_data:
+  pgadmin_data:
