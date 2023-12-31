@@ -51,6 +51,11 @@ This Project relies on Consul discovery service, first, download [Consul](https:
   2. Add "@EnableConsulDiscovry" to the main of any ms.
 ```
 ## Keycloak
+```
+Run keycloak using thefollowin commands (if not using docker):
+ $ cd to_keycloak_dir/bin
+ $ kc.bat start-dev
+```
 ### Create a Realm:
 
 1. **Log in to Keycloak Admin Console:** Access the Keycloak Admin Console using the URL provided after installing Keycloak (usually `http://localhost:8080/auth`).
