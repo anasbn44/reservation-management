@@ -72,7 +72,7 @@ services:
       - JWT_ISSUER_URI=http://localhost:8080/realms/exam-realm
       - JWT_JWK_SET_URI=http://keycloak:8080/realms/exam-realm/protocol/openid-connect/certs
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8082/actuator/health" ]
       interval: 10s
       retries: 4
     depends_on:
